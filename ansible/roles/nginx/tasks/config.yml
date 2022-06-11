@@ -1,0 +1,54 @@
+- name: create acme directory
+  file:
+    name: /opt/www/acme
+    state: directory
+    owner: root
+    group: root
+    mode: '0775'
+
+- name: copy certbot config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0775'
+  loop:
+    - {src: "certbot.conf.j2", dest: "/etc/nginx/conf.d/certbot.conf"}
+  notify: reload nginx
+
+- name: reload nginx
+  meta: flush_handlers
+
+- name: Create letsencrypt certificate
+  shell: certbot certonly -n --webroot -w /opt/www/acme -m {{ email }} --agree-tos -d {{ domain_name }}
+  args:
+    creates: /etc/letsencrypt/live/{{ domain_name }}
+
+- name: add cronjob for letsencrypt renew
+  cron:
+    name: cert update
+    job: /usr/bin/letsencrypt renew --post-hook "systemctl reload nginx"
+    weekday: "2"
+    minute: "0"
+    hour: "12"
+    user: root
+
+- name: copy vhost config
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0775'
+  loop:
+    - {src: "ssl.conf.j2", dest: "/etc/nginx/conf.d/ssl.conf"}
+  notify: reload nginx
+
+- name: rsync letsencrypt to localhost
+  synchronize:
+    mode: pull
+    src: /etc/letsencrypt
+    dest: /tmp
+    recursive: yes
+    use_ssh_args: yes

@@ -1,0 +1,8 @@
+yc_token           = "<your-token>"
+yc_cloud_id        = "<your-cloud-id>"
+yc_folder_id       = "your-folder-id"
+ssh_pub            = "~/.ssh/id_rsa.pub"
+ssh_key            = "~/.ssh/id_rsa"
+email              = "your@email.com"
+yc_dns_zone_name   = "somikhailov-fun"
+yc_dns_record_name = "test"

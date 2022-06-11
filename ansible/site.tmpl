@@ -1,0 +1,9 @@
+---
+- name: Nextcloud
+  hosts: app
+  become: true
+  vars:
+    domain_name: ${ domain_name }
+    email: ${ email }
+  roles:
+    - nginx
